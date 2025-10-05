@@ -3,7 +3,6 @@
 # Directories to look for projects
 DIRS=(
     "$HOME"
-    "$HOME/neovim/.config"
     "$HOME/uni"
     "$HOME/projects"
 )
