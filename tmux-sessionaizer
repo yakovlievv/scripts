@@ -3,7 +3,7 @@
 # Directories to look for projects
 DIRS=(
     "$HOME"
-    "$HOME/uni"
+    "$HOME/University/"
     "$HOME/projects"
 )
 
