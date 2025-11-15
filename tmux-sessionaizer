@@ -3,8 +3,8 @@
 # Directories to look for projects
 DIRS=(
     "$HOME"
-    "$HOME/University/"
-    "$HOME/projects"
+    "$HOME/dev/"
+    "$HOME/dev/uni"
 )
 
 # Select directory if not passed as argument

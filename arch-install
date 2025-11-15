@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+DOTFILES="$HOME/dots"
+. "${DOTFILES}/bin/init"
+
+log "Installing packages"
+sudo pacman -Syu --noconfirm ripgrep fd tmux neovim bat bat-extras wget fzf eza zoxide starship fastfetch less luarocks zsh-syntax-highlighting zsh-autosuggestions kitty zsh lazygit fnm
+bat cache --build
+
+log "installing node"
+fnm install 24
+
+log "Installing tpm"
+TPM_PATH="${XDG_CONFIG_HOME:-$HOME/.config}/tmux/plugins/tpm"
+git clone --depth=1 https://github.com/tmux-plugins/tpm.git "$TPM_PATH"
+
+log "Installing rust"
+export RUSTUP_INIT_SKIP_PATH_CHECK="yes"
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
