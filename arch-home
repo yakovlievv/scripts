@@ -41,3 +41,5 @@ ln -sfn "$DOTFILES/zsh/.zshenv" "$HOME/.zshenv"
 ln -sfn "$DOTFILES/zsh/.config/zsh" "$XDG_CONFIG_HOME/zsh"
 log "Linked zsh"
 
+sudo ln -sfn "$DOTFILES/keyd/default.conf" "/etc/keyd/default.conf"
+log "Linked keyd"
