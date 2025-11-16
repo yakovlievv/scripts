@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+DOTFILES="$HOME/dots"
+. "${DOTFILES}/bin/init"
+. "${DOTFILES}/bin/arch-home"
+. "${DOTFILES}/bin/arch-install"
+
+log "Changed default shell to zsh"
+chsh -s /usr/bin/zsh
+
+log "Bootstrap complete. Reboot your pc"

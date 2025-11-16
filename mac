@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+./init
+
+# log "installing brew"
+# /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+log "installing dependencies"
+brew install fnm
+
+. $HOME/dotfiles/symlink-mac.sh
+
+log "Building bat cache"
+bat cache --build
+
+log "installing node"
+fnm install 24
+
+chsh -s /usr/bin/zsh
+log "Changed default shell to zsh"
+
+log "Installing tpm"
+TPM_PATH="${XDG_CONFIG_HOME:-$HOME/.config}/tmux/plugins/tpm"
+git clone --depth=1 https://github.com/tmux-plugins/tpm.git "$TPM_PATH"
+
+log "Installing rust"
+export RUSTUP_INIT_SKIP_PATH_CHECK="yes"
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+log "Bootstrap complete. Reboot your pc"
