@@ -7,7 +7,6 @@ DIRS=(
     "$HOME/dev/uni"
     "$HOME/Projects/"
     "$HOME/University/"
-
 )
 
 # Select directory if not passed as argument
