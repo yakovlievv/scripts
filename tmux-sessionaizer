@@ -1,29 +1,40 @@
 #!/usr/bin/env bash
 
-# Directories to look for projects
+# Directories to look for projects (optional)
 DIRS=(
     "$HOME"
     "$HOME/dev/"
     "$HOME/dev/uni"
+    "$HOME/Projects/"
+    "$HOME/University/"
+
 )
 
 # Select directory if not passed as argument
 if [[ $# -eq 1 ]]; then
     selected="$1"
 else
-    # Correct fd usage for macOS
-    options=$(for dir in "${DIRS[@]}"; do
-        fd . "$dir" --type d --max-depth 1
-    done | sed "s|$HOME/||" | fzf)
-
-    [[ -n $options ]] || exit 0
-    selected="$HOME/$options"
+    selected=$(for dir in "${DIRS[@]}"; do
+    [[ -d "$dir" ]] || continue
+    fd . "$dir" --type d --max-depth 1
+done | awk -v home="$HOME/" '{print $0 "\t" substr($0, length(home)+1)}' \
+    | fzf --with-nth=2 \
+    --delimiter=$'\t' \
+    --height=100% \
+    --layout=reverse \
+    --border=rounded \
+    --prompt="> " --pointer="❯" --marker="✓" --ansi \
+    --preview='eza --icons -la --no-user --no-filesize --no-time --git --group-directories-first --total-size --color=always {1}' \
+    --preview-window=right:70%:wrap \
+    | cut -f1 )
 fi
 
-# Safe session name
-session_name=$(basename "$selected" | tr . _)
+[[ -n "$selected" ]] || exit 0
 
-# Create session if needed
+# Safe session name
+session_name=$(basename "$selected" | tr ._ -)
+
+# Create tmux session if it doesn't exist
 if ! tmux has-session -t "$session_name" 2>/dev/null; then
     tmux new-session -ds "$session_name" -c "$selected"
 fi
