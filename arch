@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-DOTFILES="$HOME/dots"
-. "${DOTFILES}/bin/init"
-. "${DOTFILES}/bin/arch-home"
-. "${DOTFILES}/bin/arch-install"
+ROOT="${DOTFILES_ROOT:-$HOME/dots}"
+BIN="${DOTS_BIN:-$ROOT/dots-cli/target/release/dots}"
 
-log "Changed default shell to zsh"
-chsh -s /usr/bin/zsh
+if [[ ! -x "$BIN" ]]; then
+  printf 'dots binary not found at %s\n' "$BIN" >&2
+  printf 'Build it with: cargo build --release --manifest-path %s/dots-cli/Cargo.toml\n' "$ROOT" >&2
+  exit 1
+fi
 
-log "Bootstrap complete. Reboot your pc"
+exec "$BIN" --bootstrap "$@"

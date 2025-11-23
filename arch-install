@@ -1,19 +1,13 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-DOTFILES="$HOME/dots"
-. "${DOTFILES}/bin/init"
+ROOT="${DOTFILES_ROOT:-$HOME/dots}"
+BIN="${DOTS_BIN:-$ROOT/dots-cli/target/release/dots}"
 
-log "Installing packages"
-sudo pacman -Syu --noconfirm ripgrep fd tmux neovim bat bat-extras wget fzf eza zoxide starship fastfetch less luarocks zsh-syntax-highlighting zsh-autosuggestions kitty zsh lazygit fnm
-bat cache --build
+if [[ ! -x "$BIN" ]]; then
+  printf 'dots binary not found at %s\n' "$BIN" >&2
+  printf 'Build it with: cargo build --release --manifest-path %s/dots-cli/Cargo.toml\n' "$ROOT" >&2
+  exit 1
+fi
 
-log "installing node"
-fnm install 24
-
-log "Installing tpm"
-TPM_PATH="${XDG_CONFIG_HOME:-$HOME/.config}/tmux/plugins/tpm"
-git clone --depth=1 https://github.com/tmux-plugins/tpm.git "$TPM_PATH"
-
-log "Installing rust"
-export RUSTUP_INIT_SKIP_PATH_CHECK="yes"
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+exec "$BIN" --install "$@"

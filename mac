@@ -1,30 +1,13 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-./init
+ROOT="${DOTFILES_ROOT:-$HOME/dots}"
+BIN="${DOTS_BIN:-$ROOT/dots-cli/target/release/dots}"
 
-# log "installing brew"
-# /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+if [[ ! -x "$BIN" ]]; then
+  printf 'dots binary not found at %s\n' "$BIN" >&2
+  printf 'Build it with: cargo build --release --manifest-path %s/dots-cli/Cargo.toml\n' "$ROOT" >&2
+  exit 1
+fi
 
-log "installing dependencies"
-brew install fnm
-
-. $HOME/dotfiles/symlink-mac.sh
-
-log "Building bat cache"
-bat cache --build
-
-log "installing node"
-fnm install 24
-
-chsh -s /usr/bin/zsh
-log "Changed default shell to zsh"
-
-log "Installing tpm"
-TPM_PATH="${XDG_CONFIG_HOME:-$HOME/.config}/tmux/plugins/tpm"
-git clone --depth=1 https://github.com/tmux-plugins/tpm.git "$TPM_PATH"
-
-log "Installing rust"
-export RUSTUP_INIT_SKIP_PATH_CHECK="yes"
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-
-log "Bootstrap complete. Reboot your pc"
+exec "$BIN" --bootstrap "$@"

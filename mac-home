@@ -1,43 +1,13 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-DOTFILES="$HOME/dots"
-. "${DOTFILES}/bin/init"
-source "${DOTFILES}/zsh/.zshenv"
+ROOT="${DOTFILES_ROOT:-$HOME/dots}"
+BIN="${DOTS_BIN:-$ROOT/dots-cli/target/release/dots}"
 
-log "Creating HOME structure"
-mkdir -pv "$XDG_CONFIG_HOME"
-mkdir -pv "$XDG_CACHE_HOME"
-mkdir -pv "$XDG_BIN_HOME"
-mkdir -pv "$XDG_DATA_HOME"
-mkdir -pv "$XDG_STATE_HOME"
-mkdir -pv "${HOME}/docs"
-mkdir -pv "${HOME}/bin"
-mkdir -pv "${HOME}/tmp"
-mkdir -pv "${HOME}/dev"
+if [[ ! -x "$BIN" ]]; then
+  printf 'dots binary not found at %s\n' "$BIN" >&2
+  printf 'Build it with: cargo build --release --manifest-path %s/dots-cli/Cargo.toml\n' "$ROOT" >&2
+  exit 1
+fi
 
-# List of directories to symlink directly
-dirs=(fastfetch bat karabiner kitty nvim yazi wget prettier git lazygit)
-
-for dir in "${dirs[@]}"; do
-    target="$XDG_CONFIG_HOME/$dir"
-    src="$DOTFILES/$dir"
-    
-    [ -e "$target" ] && rm -rf "$target"
-    
-    ln -sfn "$src" "$target"
-    log "Linked $src → $target"
-done
-
-ln -sfn "$DOTFILES/starship/starship.toml" "$XDG_CONFIG_HOME/starship.toml"
-log "Linked starship"
-
-ln -sfn "$DOTFILES/bin" "$HOME/bin"
-log "Linked bin"
-
-ln -sfn "$DOTFILES/tmux/.tmux.conf" "$HOME/.tmux.conf"
-ln -sfn "$DOTFILES/tmux/.config/tmux" "$XDG_CONFIG_HOME/tmux"
-log "Linked tmux"
-
-ln -sfn "$DOTFILES/zsh/.zshenv" "$HOME/.zshenv"
-ln -sfn "$DOTFILES/zsh/.config/zsh" "$XDG_CONFIG_HOME/zsh"
-log "Linked zsh"
+exec "$BIN" --home "$@"
