@@ -1,7 +1,9 @@
-# #!/usr/bin/env bash
-# set -euo pipefail
-#
-# ROOT="${DOTFILES_ROOT:-$HOME/dots}"
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="${DOTFILES_ROOT:-$HOME/dots}"
+DOTFILES="$HOME/dots"
+source init
 # BIN="${DOTS_BIN:-$ROOT/dots-cli/target/release/dots}"
 #
 # if [[ ! -x "$BIN" ]]; then
@@ -12,7 +14,7 @@
 
 # exec "$BIN" --home "$@"
 # List of directories to symlink directly
-dirs=(fastfetch bat karabiner kitty nvim yazi wget prettier git lazygit)
+dirs=(fastfetch bat karabiner kitty nvim yazi wget prettier git lazygit wezterm)
 
 for dir in "${dirs[@]}"; do
     target="$XDG_CONFIG_HOME/$dir"
