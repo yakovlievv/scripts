@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES="$HOME/dots"
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+
+MAC_LINKS=(
+    npm clang opencode fastfetch bat
+    karabiner kitty nvim yazi wget prettier git lazygit wezterm
+)
+
+ARCH_LINKS=(
+
+)
+
+source init 2>/dev/null || true   # don't explode if missing
+
+# universal bin link (works on both mac and linux)
+mkdir -p "$HOME/Documents/dev" 2>/dev/null || true
+ln -sfnv "$DOTFILES/bin" "$HOME/Documents/dev/bin"
+
+if [[ "$OSTYPE" == darwin* ]]; then
+    echo "[macOS] Linking configs..."
+
+    rm -rf "$HOME/Documents/bin"
+    ln -sfnv "$DOTFILES/bin" "$HOME/Documents/"
+    
+    LINKS=("${MAC_LINKS[@]}")
+
+elif [[ "$OSTYPE" == linux-* ]]; then
+    echo "[Linux] Linking configs..."
+
+    rm -rf "$HOME/bin"
+    ln -sfnv "$DOTFILES/bin" "$HOME/bin"
+    # remove karabiner automatically
+    LINKS=("${MAC_LINKS[@]/karabiner}")
+else
+    echo "Unsupported OS: $OSTYPE"
+    exit 1
+fi
+
+for dir in "${LINKS[@]}"; do
+    src="$DOTFILES/$dir"
+    target="$XDG_CONFIG_HOME/$dir"
+
+    [ -e "$target" ] && rm -rf "$target"
+    ln -sfnv "$src" "$target"
+done
+
+# shared configs
+ln -sfnv "$DOTFILES/starship/starship.toml" "$XDG_CONFIG_HOME/starship.toml"
+
+ln -sfnv "$DOTFILES/tmux/.tmux.conf" "$HOME/.tmux.conf"
+ln -sfnv "$DOTFILES/tmux/.config/tmux" "$XDG_CONFIG_HOME/tmux"
+
+ln -sfnv "$DOTFILES/zsh/.zshenv" "$HOME/.zshenv"
+ln -sfnv "$DOTFILES/zsh/.config/zsh" "$XDG_CONFIG_HOME/zsh"
+
+mkdir -pv "${HISTDIR:-$HOME/.local/share/history}"
