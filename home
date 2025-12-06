@@ -9,31 +9,30 @@ MAC_LINKS=(
     karabiner kitty nvim yazi wget prettier git lazygit wezterm
 )
 
-ARCH_LINKS=(
-
+LINUX_LINKS=(
+    nvim git
 )
 
 source init 2>/dev/null || true   # don't explode if missing
 
-# universal bin link (works on both mac and linux)
-mkdir -p "$HOME/Documents/dev" 2>/dev/null || true
-ln -sfnv "$DOTFILES/bin" "$HOME/Documents/dev/bin"
+# mkdir -p "$HOME/Documents/dev" 2>/dev/null || true
+# ln -sfnv "$DOTFILES/bin" "$HOME/Documents/dev/bin"
 
 if [[ "$OSTYPE" == darwin* ]]; then
     echo "[macOS] Linking configs..."
+    rm -rf "$HOME/Documents/dev/bin"
+    ln -sfnv "$DOTFILES/bin" "$HOME/Documents/dev/bin"
+    export PATH="$PATH:$HOME/Documents/bin"
+    LINKS=$MAC_LINKS
 
-    rm -rf "$HOME/Documents/bin"
-    ln -sfnv "$DOTFILES/bin" "$HOME/Documents/"
-    
-    LINKS=("${MAC_LINKS[@]}")
 
 elif [[ "$OSTYPE" == linux-* ]]; then
     echo "[Linux] Linking configs..."
-
     rm -rf "$HOME/bin"
     ln -sfnv "$DOTFILES/bin" "$HOME/bin"
-    # remove karabiner automatically
-    LINKS=("${MAC_LINKS[@]/karabiner}")
+    export PATH="$PATH:$HOME/bin"
+    LINKS=$LINUX_LINKS
+
 else
     echo "Unsupported OS: $OSTYPE"
     exit 1
