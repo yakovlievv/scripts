@@ -5,8 +5,9 @@ DIRS=(
     "$HOME"
     "$HOME/dev/"
     "$HOME/dev/uni"
-    "$HOME/Projects/"
-    "$HOME/University/"
+    "$HOME/Documents/"
+    "$HOME/Documents/dev"
+    "$HOME/Documents/uni"
 )
 
 # Select directory if not passed as argument
