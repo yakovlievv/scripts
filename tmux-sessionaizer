@@ -24,7 +24,7 @@ done | awk -v home="$HOME/" '{print $0 "\t" substr($0, length(home)+1)}' \
     --layout=reverse \
     --border=rounded \
     --prompt="> " --pointer="❯" --marker="✓" --ansi \
-    --preview='eza --icons -la --no-user --no-filesize --no-time --git --group-directories-first --total-size --color=always {1}' \
+    --preview='eza --icons -la --git --group-directories-first --total-size --color=always {1}' \
     --preview-window=right:70%:wrap \
     | cut -f1 )
 fi
