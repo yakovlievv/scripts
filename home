@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DOTFILES="$HOME/dots"
+DOTFILES="$HOME/dotfiles"
 export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 
 MAC_LINKS=(
     npm clang opencode fastfetch bat
-    karabiner kitty nvim yazi wget prettier git lazygit wezterm
+    karabiner nvim yazi wget prettier git lazygit wezterm doom raycast
 )
 
 LINUX_LINKS=(
@@ -15,14 +15,11 @@ LINUX_LINKS=(
 
 source init 2>/dev/null || true   # don't explode if missing
 
-# mkdir -p "$HOME/Documents/dev" 2>/dev/null || true
-# ln -sfnv "$DOTFILES/bin" "$HOME/Documents/dev/bin"
-
 if [[ "$OSTYPE" == darwin* ]]; then
     echo "[macOS] Linking configs..."
-    rm -rf "$HOME/Documents/dev/bin"
-    ln -sfnv "$DOTFILES/bin" "$HOME/Documents/dev/bin"
-    export PATH="$PATH:$HOME/Documents/bin"
+    rm -rf "$HOME/bin"
+    ln -sfnv "$DOTFILES/bin" "$HOME/bin"
+    export PATH="$PATH:$HOME/bin"
     LINKS=$MAC_LINKS
 
 
