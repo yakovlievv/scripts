@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+result=$(emacsclient --eval '
+(if (and (fboundp (quote org-clocking-p)) (org-clocking-p))
+    (format "%s %s"
+            (substring-no-properties org-clock-heading
+              0 (min (length org-clock-heading) 30))
+            (org-duration-from-minutes (org-clock-get-clocked-time)))
+    "")' 2>/dev/null)
+
+# emacsclient returns quoted strings — strip the quotes
+result="${result%\"}"
+result="${result#\"}"
+
+if [ -n "$result" ]; then
+    printf '󱎫 %s' "$result"
+else
+    printf 'no-clock'
+fi

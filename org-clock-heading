@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+result=$(emacsclient --eval '
+(if (and (fboundp (quote org-clocking-p)) (org-clocking-p))
+    (substring-no-properties org-clock-heading
+      0 (min (length org-clock-heading) 35))
+    "")' 2>/dev/null)
+
+result="${result%\"}"
+result="${result#\"}"
+
+if [ -n "$result" ]; then
+    heading="$result"
+    if [ "${#heading}" -ge 35 ]; then
+        heading="${heading:0:32}..."
+    fi
+    printf '%s' "$heading"
+fi

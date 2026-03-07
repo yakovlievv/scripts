@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+result=$(emacsclient --eval '
+(if (and (fboundp (quote org-clocking-p)) (org-clocking-p))
+    (org-duration-from-minutes (org-clock-get-clocked-time))
+    "")' 2>/dev/null)
+
+result="${result%\"}"
+result="${result#\"}"
+
+if [ -n "$result" ]; then
+    printf '󱎫 %s' "$result"
+fi
