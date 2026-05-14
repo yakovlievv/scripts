@@ -17,6 +17,7 @@ BLACKLIST=(
     Library
     Desktop
     Documents/Zoom
+    Applications
 )
 
 blacklist_pattern=$(printf "|%s" "${BLACKLIST[@]}")
@@ -47,8 +48,8 @@ else
         --ansi \
         --preview='eza --icons -la --git --group-directories-first --total-size --color=always {1}' \
         --preview-window=right:70%:wrap \
-        --bind "ctrl-x:execute-silent(tmux kill-session -t \$(basename {1} | tr ._ -))+reload($0 --list)" \
-        | cut -f1)
+        --bind "ctrl-x:execute-silent(tmux kill-session -t \$(basename {1} | tr ._ -))+reload($0 --list)" |
+        cut -f1)
 fi
 
 # Generate list for reload (used by ctrl-x)
