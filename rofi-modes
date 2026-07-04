@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ $# -eq 0 ]; then
+    printf '\0prompt\x1fMenu\n'
+    printf '󰂯 Bluetooth\n'
+    printf '󰖩 WiFi\n'
+    printf '󰞅 Emoji\n'
+    printf '󰅍 Clipboard\n'
+    exit 0
+fi
+
+case "$1" in
+    *Bluetooth*) setsid -f rofi-bluetooth >/dev/null 2>&1 ;;
+    *WiFi*)      setsid -f networkmanager_dmenu >/dev/null 2>&1 ;;
+    *Emoji*)     setsid -f rofimoji >/dev/null 2>&1 ;;
+    *Clipboard*) setsid -f sh -c 'cliphist list | rofi -dmenu -i -p Clipboard | cliphist decode | wl-copy' >/dev/null 2>&1 ;;
+esac
+exit 0
