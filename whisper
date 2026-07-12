@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# whisper — transcribe an audio file via OpenAI Whisper.
+#
+# Transcript text goes to stdout (so you can pipe it), verbose logs go to
+# stderr (so they don't pollute the pipe).
+#
+#   whisper recording.mp3
+#   whisper recording.mp3 > transcript.txt        # logs still show in terminal
+#   whisper -l en -p "some context" call.m4a | pbcopy
+#   whisper --json recording.mp3 | jq .segments   # raw verbose_json on stdout
+
+PROG="${0##*/}"
+
+usage() {
+	cat >&2 <<EOF
+Usage: $PROG [options] <audio-file>
+
+Transcribe an audio file using the OpenAI Whisper API.
+
+Options:
+  -m MODEL     model to use (default: whisper-1)
+  -l LANG      input language as ISO-639-1 (e.g. en, uk); auto-detected if omitted
+  -p PROMPT    prompt to guide the model (names, jargon, style)
+  -t TEMP      sampling temperature 0.0-1.0 (default: 0)
+  --json       emit the raw verbose_json response to stdout instead of text
+  -q, --quiet  suppress the verbose logs on stderr
+  -h, --help   show this help
+
+Environment:
+  OPENAI_API_KEY   required
+EOF
+}
+
+log() { [ -n "$QUIET" ] || printf '%s\n' "$*" >&2; }
+die() { printf '%s: %s\n' "$PROG" "$*" >&2; exit 1; }
+
+MODEL="whisper-1"
+LANG=""
+PROMPT=""
+TEMP="0"
+RAW=""
+QUIET=""
+FILE=""
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		-m) MODEL="${2:?-m needs a value}"; shift 2 ;;
+		-l) LANG="${2:?-l needs a value}"; shift 2 ;;
+		-p) PROMPT="${2:?-p needs a value}"; shift 2 ;;
+		-t) TEMP="${2:?-t needs a value}"; shift 2 ;;
+		--json) RAW=1; shift ;;
+		-q|--quiet) QUIET=1; shift ;;
+		-h|--help) usage; exit 0 ;;
+		--) shift; FILE="${1:-}"; break ;;
+		-*) die "unknown option: $1 (try --help)" ;;
+		*) FILE="$1"; shift ;;
+	esac
+done
+
+[ -n "$FILE" ] || { usage; exit 2; }
+[ -n "${OPENAI_API_KEY:-}" ] || die "OPENAI_API_KEY is not set"
+[ -f "$FILE" ] || die "no such file: $FILE"
+[ -r "$FILE" ] || die "cannot read file: $FILE"
+command -v curl >/dev/null || die "curl is required"
+command -v jq   >/dev/null || die "jq is required"
+
+size_h=$(du -h "$FILE" 2>/dev/null | cut -f1 | tr -d ' ')
+log "==> whisper"
+log "    file:  $FILE (${size_h:-?})"
+log "    model: $MODEL"
+log "    lang:  ${LANG:-auto}"
+[ -n "$PROMPT" ] && log "    prompt: $PROMPT"
+log "    temp:  $TEMP"
+
+# Build curl args. verbose_json gives us language, duration and per-segment data.
+CURL_ARGS=(
+	--silent --show-error --fail-with-body
+	--request POST "https://api.openai.com/v1/audio/transcriptions"
+	--header "Authorization: Bearer $OPENAI_API_KEY"
+	--form "file=@\"${FILE}\""
+	--form "model=${MODEL}"
+	--form "response_format=verbose_json"
+	--form "temperature=${TEMP}"
+	--write-out $'\n__WHISPER_HTTP__%{http_code}__%{time_total}'
+)
+[ -n "$LANG" ]   && CURL_ARGS+=(--form "language=${LANG}")
+[ -n "$PROMPT" ] && CURL_ARGS+=(--form "prompt=${PROMPT}")
+
+log "--> POST /v1/audio/transcriptions"
+started=$(date +%s)
+
+# Capture body + trailer; keep going on curl failure so we can report it.
+set +e
+RESP=$(curl "${CURL_ARGS[@]}")
+CURL_RC=$?
+set -e
+
+# Split off the trailer we appended via --write-out.
+TRAILER="${RESP##*$'\n'__WHISPER_HTTP__}"
+BODY="${RESP%$'\n'__WHISPER_HTTP__*}"
+HTTP_CODE="${TRAILER%%__*}"
+TIME_TOTAL="${TRAILER##*__}"
+
+if [ "$CURL_RC" -ne 0 ] || [ "${HTTP_CODE:-000}" -ge 400 ]; then
+	log "<-- HTTP ${HTTP_CODE:-000} (curl rc=$CURL_RC) in ${TIME_TOTAL:-?}s"
+	msg=$(printf '%s' "$BODY" | jq -r '.error.message // empty' 2>/dev/null)
+	die "request failed: ${msg:-$BODY}"
+fi
+
+log "<-- HTTP $HTTP_CODE in ${TIME_TOTAL}s"
+
+# Log the verbose bits to stderr.
+if [ -z "$QUIET" ]; then
+	printf '%s' "$BODY" | jq -r '
+		"    detected language: \(.language // "?")",
+		"    audio duration:    \(.duration // "?")s",
+		"    segments:          \((.segments // []) | length)"
+	' >&2 2>/dev/null || true
+	printf '%s' "$BODY" | jq -r '
+		(.segments // [])[]
+		| "    [\(.start | (.*10|round)/10)s -> \(.end | (.*10|round)/10)s] \(.text | ltrimstr(" "))"
+	' >&2 2>/dev/null || true
+	elapsed=$(( $(date +%s) - started ))
+	log "==> done in ${elapsed}s"
+fi
+
+# The actual result on stdout.
+if [ -n "$RAW" ]; then
+	printf '%s\n' "$BODY" | jq .
+else
+	printf '%s' "$BODY" | jq -r '.text'
+fi
