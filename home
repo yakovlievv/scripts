@@ -6,29 +6,38 @@ export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 
 MAC_LINKS=(
     npm clang opencode fastfetch bat
-    karabiner nvim yazi wget prettier git lazygit wezterm doom raycast
+    karabiner nvim yazi wget prettier git lazygit doom tmux
 )
 
 LINUX_LINKS=(
     nvim git
 )
 
-source init 2>/dev/null || true   # don't explode if missing
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+log() { echo -e "${GREEN}==>${NC} $1"; }
+warn() { echo -e "${YELLOW}⚠${NC}  $1"; }
+error() {
+    echo -e "${RED}✖${NC}  $1" >&2
+    exit 1
+}
 
 if [[ "$OSTYPE" == darwin* ]]; then
     echo "[macOS] Linking configs..."
-    rm -rf "$HOME/bin"
-    ln -sfnv "$DOTFILES/bin" "$HOME/bin"
+    rm -rf "${HOME:?}/bin"
+    ln -sfnv "${DOTFILES:?}/bin" "${HOME:?}/bin"
     export PATH="$PATH:$HOME/bin"
-    LINKS=$MAC_LINKS
-
+    LINKS=("${MAC_LINKS[@]}")
 
 elif [[ "$OSTYPE" == linux-* ]]; then
     echo "[Linux] Linking configs..."
-    rm -rf "$HOME/bin"
+    rm -rf "${HOME:?}/bin"
     ln -sfnv "$DOTFILES/bin" "$HOME/bin"
     export PATH="$PATH:$HOME/bin"
-    LINKS=$LINUX_LINKS
+    LINKS=("${LINUX_LINKS[@]}")
 
 else
     echo "Unsupported OS: $OSTYPE"
