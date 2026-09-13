@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
 
 path="$1"
-home="${HOME%/}"
-if [[ -n "$home" && "$path" == "$home" ]]; then
-    path="~"
-elif [[ -n "$home" && "$path" == "$home"/* ]]; then
-    path="~/${path#$home/}"
-fi
+path="${path/#$HOME/~}"
 
 if [ "$path" = "~" ] || [ "$path" = "/" ]; then
     echo -n "$path"
