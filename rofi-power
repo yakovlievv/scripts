@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Power menu as a rofi script mode. Run standalone: rofi -show power -modes power:rofi-power
+set -euo pipefail
+
+LOCK="󰌾"; LOGOUT="󰍃"; SLEEP="󰒲"; REBOOT="󰜉"; POWER="󰐥"
+
+confirm() {
+    local ans
+    ans=$(printf 'No\nYes\n' | rofi -dmenu -i -p "$1?" -theme-str 'listview { lines: 2; }') || return 1
+    [ "$ans" = "Yes" ]
+}
+
+if [ $# -eq 0 ]; then
+    printf '\0prompt\x1fPower\n'
+    command -v hyprlock >/dev/null && printf '%s Lock\n' "$LOCK"
+    printf '%s Logout\n'   "$LOGOUT"
+    printf '%s Suspend\n'  "$SLEEP"
+    printf '%s Reboot\n'   "$REBOOT"
+    printf '%s Shutdown\n' "$POWER"
+    exit 0
+fi
+
+case "$1" in
+    *Lock*)     setsid -f hyprlock >/dev/null 2>&1 ;;
+    *Logout*)   confirm Logout   && hyprctl dispatch 'hl.dsp.exit()' ;;
+    *Suspend*)  systemctl suspend ;;
+    *Reboot*)   confirm Reboot   && systemctl reboot ;;
+    *Shutdown*) confirm Shutdown && systemctl poweroff ;;
+esac
+exit 0
